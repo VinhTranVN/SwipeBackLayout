@@ -17,6 +17,7 @@
 package me.imid.swipebacklayout.lib;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
@@ -101,7 +102,7 @@ public class ViewDragHelper {
      */
     public static final int DIRECTION_ALL = DIRECTION_HORIZONTAL | DIRECTION_VERTICAL;
 
-    public static final int EDGE_SIZE = 20; // dp
+    public static final int EDGE_SIZE = 30; // dp
 
     private static final int BASE_SETTLE_DURATION = 256; // ms
 
@@ -422,6 +423,7 @@ public class ViewDragHelper {
         final ViewConfiguration vc = ViewConfiguration.get(context);
         final float density = context.getResources().getDisplayMetrics().density;
         mEdgeSize = (int) (EDGE_SIZE * density + 0.5f);
+        System.out.println(">>> mEdgeSize " + mEdgeSize + "; density " + density);
 
         mTouchSlop = vc.getScaledTouchSlop();
         mMaxVelocity = vc.getScaledMaximumFlingVelocity();
@@ -1565,16 +1567,35 @@ public class ViewDragHelper {
 
     private int getEdgeTouched(int x, int y) {
         int result = 0;
-
+        System.out.println(">>> getEdgeTouched mEdgeSize " + mEdgeSize);
         if (x < mParentView.getLeft() + mEdgeSize)
             result = EDGE_LEFT;
         if (y < mParentView.getTop() + mEdgeSize)
             result = EDGE_TOP;
         if (x > mParentView.getRight() - mEdgeSize)
             result = EDGE_RIGHT;
-        if (y > mParentView.getBottom() - mEdgeSize)
+        if (y > mParentView.getBottom() - mEdgeSize - getBottomNavigationBar())
             result = EDGE_BOTTOM;
 
         return result;
     }
+
+    private int getBottomNavigationBar() {
+        Resources resources = mParentView.getResources();
+        return hasNavBar(resources) ? getBottomBarHeight(resources) : 0;
+    }
+
+    private boolean hasNavBar(Resources resources) {
+        int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
+        return id > 0 && resources.getBoolean(id);
+    }
+
+    private int getBottomBarHeight(Resources resources){
+        int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return resources.getDimensionPixelSize(resourceId);
+        }
+        return 0;
+    }
+
 }
